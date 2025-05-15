@@ -1,4 +1,4 @@
-def generate_mock_data_prompt(table_name: str, table_script: str, num_sample:int ) -> str:
+def generate_prompt_without_key(table_name: str, table_script: str, num_sample:int ) -> str:
     prompt = f"""
     You are a data generation expert. Your task is to create mock data for a database table.
     Table Name: {table_name}

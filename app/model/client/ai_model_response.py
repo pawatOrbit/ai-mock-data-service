@@ -1,4 +1,4 @@
 from pydantic import BaseModel
 
-class AiMockDataResponseBase(BaseModel):
+class LmStudioContentResponse(BaseModel):
     response: str
