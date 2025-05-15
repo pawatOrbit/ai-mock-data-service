@@ -20,5 +20,8 @@ async def query_lm(prompt: str,model: str, temperature: float = 0.7, max_tokens:
         result = response.json()
 
         contentResult = result["choices"][0]["message"]["content"]
+        promptTokens = result["usage"]["prompt_tokens"]
+        completionTokens = result["usage"]["completion_tokens"]
+        totalTokens = result["usage"]["total_tokens"]
 
-        return await extract_thinking_and_context(contentResult)
+        return await extract_thinking_and_context(result=contentResult, prompt_tokens=promptTokens, completion_tokens=completionTokens, total_tokens=totalTokens)
