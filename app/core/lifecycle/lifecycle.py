@@ -7,8 +7,11 @@ import logging
 async def lifespan(app: FastAPI):
     logging.info("Starting up the application...")
     await database.connect()
+    logging.info("Connected to the database successfully.")
 
     yield
 
     logging.info("Shutting down the application...")
     await database.disconnect()
+    logging.info("Disconnected from the database successfully.")
+    logging.info("The application has been shut down.")

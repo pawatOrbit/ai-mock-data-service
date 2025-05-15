@@ -2,18 +2,15 @@ from app.model.client.ai_model_response import LmStudioContentResponse
 import re
 import logging
 
-async def extract_thinking_and_context(result: str)-> LmStudioContentResponse:
+async def extract_thinking_and_context(result: str, prompt_tokens: int = 0, completion_tokens: int = 0, total_tokens: int = 0) -> LmStudioContentResponse:
 
     logging.info(f"Extracting thinking and context from result: {result}")
     # Extract content between <think> and </think>
-    resultContext = await extract_response(result)
+    result = result.replace("\n", "")
 
     return LmStudioContentResponse(
-        response=resultContext,
+        response=result,
+        prompt_tokens=prompt_tokens,
+        completion_tokens=completion_tokens,
+        total_tokens=total_tokens
     )
-
-async def extract_response(result: str) -> str:
-    result = result.replace("\n", "")
-    pattern = r"(INSERT INTO .*?;)"
-    matches = re.findall(pattern, result, re.DOTALL)
-    return "".join(matches)
