@@ -1,14 +1,14 @@
-from app.model.http_response.ai_model_response import AiMockDataResponseBase
+from app.model.client.ai_model_response import LmStudioContentResponse
 import re
 import logging
 
-async def extract_thinking_and_context(result: str)-> AiMockDataResponseBase:
+async def extract_thinking_and_context(result: str)-> LmStudioContentResponse:
 
     logging.info(f"Extracting thinking and context from result: {result}")
     # Extract content between <think> and </think>
     resultContext = await extract_response(result)
 
-    return AiMockDataResponseBase(
+    return LmStudioContentResponse(
         response=resultContext,
     )
 

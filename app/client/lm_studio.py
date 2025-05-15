@@ -1,10 +1,10 @@
 import httpx
 from app.config import lm_path, lm_deepseek_timeout
-from app.model.http_response.ai_model_response import AiMockDataResponseBase
-from app.utils.ai_result_str import extract_thinking_and_context
+from app.model.client.ai_model_response import LmStudioContentResponse
+from app.utils.extract_content import extract_thinking_and_context
 
 
-async def query_lm(prompt: str,model: str, temperature: float = 0.7, max_tokens: int = 512) -> AiMockDataResponseBase:
+async def query_lm(prompt: str,model: str, temperature: float = 0.7, max_tokens: int = 512) -> LmStudioContentResponse:
     payload = {
         "model": model,
         "messages": [
