@@ -1,7 +1,7 @@
 from app.repository.database_schemas import get_schema_by_table_name
 from app.prompt.mock_data_generator_prompt import generate_prompt_without_key
 from app.client.lm_studio import query_lm
-from app.config import lm_deepseek_model
+from app.core.config.config import lm_deepseek_model
 from app.model.http.mock_data_generator_req_resp import MockDataGeneratorResponse,MockDataGeneratorResponseData
 
 async def mock_data_generator_service(table_name: str, num_sample: int)-> MockDataGeneratorResponse| None:

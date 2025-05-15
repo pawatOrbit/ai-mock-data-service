@@ -1,5 +1,5 @@
 import httpx
-from app.config import lm_path, lm_deepseek_timeout
+from app.core.config.config import lm_path, lm_deepseek_timeout
 from app.model.client.ai_model_response import LmStudioContentResponse
 from app.utils.extract_content import extract_thinking_and_context
 
