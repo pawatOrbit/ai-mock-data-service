@@ -1,7 +1,7 @@
 import httpx
 from app.core.config.config import lm_path, lm_deepseek_timeout
 from app.model.client.ai_model_response import LmStudioContentResponse
-from app.utils.extract_content import extract_thinking_and_context
+from app.utils.extract_string import extract_thinking_and_context
 
 
 async def query_lm(prompt: str,model: str, temperature: float = 0.7, max_tokens: int = 512) -> LmStudioContentResponse:

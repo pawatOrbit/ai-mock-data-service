@@ -22,6 +22,7 @@ def setup_logging():
 
     root_logger = logging.getLogger()
     root_logger.setLevel(logging.INFO)
+    # root_logger.setLevel(logging.ERROR)
     root_logger.handlers = [handler]
 
     logging.getLogger("databases").setLevel(logging.WARNING)
