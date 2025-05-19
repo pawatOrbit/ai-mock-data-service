@@ -11,7 +11,7 @@ type Profile struct {
 	Env runtime.Environment `mapstructure:"env"`
 }
 
-const configGlobalTemplate = "config/config_file/config.{{.Env}}.yaml"
+const configGlobalTemplate = "config/config.{{.Env}}.yaml"
 
 func GetGlobalConfigFilePath(cfg runtime.RuntimeCfg) (string, error) {
 	var result strings.Builder
