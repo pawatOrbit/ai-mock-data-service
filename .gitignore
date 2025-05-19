@@ -1,5 +1,6 @@
 #for go projects
 go/config/config.*.yaml
+.DS_Store
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
