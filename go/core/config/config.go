@@ -2,12 +2,12 @@ package core_config
 
 import "github.com/pawatOrbit/ai-mock-data-service/go/core/pgdb"
 
-
 type Config struct {
-	Env        string        `mapstructure:"env"`
-	RestServer RestServer    `mapstructure:"restServer"`
-	CORS       CORS          `mapstructure:"cors"`
-	Postgres   pgdb.Postgres `mapstructure:"postgres"`
+	Env        string         `mapstructure:"env"`
+	RestServer RestServer     `mapstructure:"restServer"`
+	CORS       CORS           `mapstructure:"cors"`
+	Postgres   pgdb.Postgres  `mapstructure:"postgres"`
+	LMStudio   LMStudioConfig `mapstructure:"lmStudio"`
 }
 
 type CORS struct {
@@ -20,4 +20,10 @@ type CORS struct {
 
 type RestServer struct {
 	Port string `mapstructure:"port"`
+}
+
+type LMStudioConfig struct {
+	Protocol   string `mapstructure:"protocol"`
+	BaseUrl    string `mapstructure:"baseUrl"`
+	EnableMock bool   `mapstructure:"enableMock"`
 }
