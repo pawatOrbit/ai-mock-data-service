@@ -7,9 +7,10 @@ import (
 	"github.com/pawatOrbit/ai-mock-data-service/go/core/transport/httpserver"
 	middleware_httpserver "github.com/pawatOrbit/ai-mock-data-service/go/core/transport/httpserver/middlewares"
 	"github.com/pawatOrbit/ai-mock-data-service/go/internal/model"
+	"github.com/pawatOrbit/ai-mock-data-service/go/internal/service"
 )
 
-func registerRoute() http.Handler {
+func registerRoute(service service.Service) http.Handler {
 	mux := http.NewServeMux()
 	r := httpserver.NewRouter(mux)
 
@@ -26,6 +27,20 @@ func registerRoute() http.Handler {
 					Response: "Hello, " + in.Name,
 				}, nil
 			})))
+
+	r.Post("/v1/table_schemas/get_table_schemas_list",
+		httpserver.NewTransport(
+			&model.GetDatabaseSchemaTableNamesRequest{},
+			httpserver.NewEndpoint(
+				service.TableSchemasService.GetDatabaseSchemaTableNames,
+			)))
+
+	r.Post("/v1/mock-data/basic",
+		httpserver.NewTransport(
+			&model.GenerateMockDataWithOneTableRequest{},
+			httpserver.NewEndpoint(
+				service.GenerateMockDataService.GenerateMockDataWithOneTable,
+			)))
 
 	return mux
 }

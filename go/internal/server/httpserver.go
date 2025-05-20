@@ -7,7 +7,12 @@ import (
 	"net/http"
 
 	"github.com/pawatOrbit/ai-mock-data-service/go/config"
+	"github.com/pawatOrbit/ai-mock-data-service/go/core/exception"
+	"github.com/pawatOrbit/ai-mock-data-service/go/core/httpclient"
 	middleware_httpserver "github.com/pawatOrbit/ai-mock-data-service/go/core/transport/httpserver/middlewares"
+	"github.com/pawatOrbit/ai-mock-data-service/go/internal/repository"
+	"github.com/pawatOrbit/ai-mock-data-service/go/internal/service"
+	"github.com/pawatOrbit/ai-mock-data-service/go/utils"
 	"github.com/rs/cors"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
@@ -25,7 +30,28 @@ func NewHttpServer() (*http.Server, error) {
 	}).Handler)
 
 	middlewareStack := middleware_httpserver.CreateStack(middlewares...)
-	handler := registerRoute()
+
+	// Create repository
+	repo, err := repository.NewRepository()
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize repository: %w", err)
+	}
+
+	mockDataAppError := exception.NewMockDataServiceErrors()
+
+	utils := utils.NewUtils()
+
+	lmStudioClient := httpclient.NewLmStudioHttpClient(&cfg.LMStudio, slog.Logger{})
+
+	service := service.NewService(
+		repo,
+		cfg,
+		mockDataAppError,
+		utils,
+		lmStudioClient,
+	)
+
+	handler := registerRoute(service)
 	wrappedMiddleware := middlewareStack(handler)
 	wrappedOtel := otelhttp.NewHandler(
 		wrappedMiddleware,
