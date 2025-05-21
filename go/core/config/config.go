@@ -23,7 +23,10 @@ type RestServer struct {
 }
 
 type LMStudioConfig struct {
-	Protocol   string `mapstructure:"protocol"`
-	BaseUrl    string `mapstructure:"baseUrl"`
-	EnableMock bool   `mapstructure:"enableMock"`
+	Protocol    string  `mapstructure:"protocol"`
+	BaseUrl     string  `mapstructure:"baseUrl"`
+	Model       string  `mapstructure:"model"`
+	Temperature float64 `mapstructure:"temperature"`
+	MaxTokens   int     `mapstructure:"maxTokens"`
+	EnableMock  bool    `mapstructure:"enableMock"`
 }

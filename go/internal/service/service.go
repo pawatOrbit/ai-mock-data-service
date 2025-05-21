@@ -27,6 +27,6 @@ func NewService(
 		Config:                  config,
 		Errors:                  errors,
 		TableSchemasService:     NewTableSchemasService(repo, errors),
-		GenerateMockDataService: NewGenerateMockDataService(repo, errors, utils, lmStudioClient),
+		GenerateMockDataService: NewGenerateMockDataService(repo, errors, utils, config, lmStudioClient),
 	}
 }

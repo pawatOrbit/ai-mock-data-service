@@ -2,8 +2,19 @@ package exception
 
 import (
 	"encoding/json"
+	"fmt"
+	"reflect"
 
 	"github.com/pkg/errors"
+)
+
+type Level int
+
+const (
+	LevelDebug Level = iota
+	LevelInfo
+	LevelWarn
+	LevelError
 )
 
 // ExceptionErrors is used as our project error response.
@@ -15,8 +26,10 @@ type ExceptionError struct {
 	GlobalMessage  string
 	DebugMessage   string
 	// ErrItems       []*ErrItem
-	ErrFields    []string
-	ErrWithDatas map[string]string
+	ErrFields        []string
+	ErrWithDatas     map[string]string
+	Level            Level
+	OverrideLogLevel bool
 
 	// This is used to store the stack trace of the error.
 	// This is not a field that will be marshalled to JSON.
@@ -121,4 +134,31 @@ func (cErr *ExceptionError) Copy() *ExceptionError {
 	copy.DebugMessage = cErr.DebugMessage
 
 	return &copy
+}
+
+type stackTracer interface {
+	StackTrace() errors.StackTrace
+}
+
+type errorField struct {
+	Kind    string `json:"kind"`
+	Stack   string `json:"stack"`
+	Message string `json:"message"`
+}
+
+func GetStackField(err error) errorField {
+	var stack string
+
+	if serr, ok := err.(stackTracer); ok {
+		st := serr.StackTrace()
+		stack = fmt.Sprintf("%+v", st)
+		if len(stack) > 0 && stack[0] == '\n' {
+			stack = stack[1:]
+		}
+	}
+	return errorField{
+		Kind:    reflect.TypeOf(err).String(),
+		Stack:   stack,
+		Message: err.Error(),
+	}
 }
