@@ -42,5 +42,12 @@ func registerRoute(service service.Service) http.Handler {
 				service.GenerateMockDataService.GenerateMockDataWithOneTable,
 			)))
 
+	r.Post("/v1/mock-data/with-fk",
+		httpserver.NewTransport(
+			&model.GenerateMockDataWithFkTableRequest{},
+			httpserver.NewEndpoint(
+				service.GenerateMockDataService.GenerateMockDataWithFkTables,
+			)))
+
 	return mux
 }
