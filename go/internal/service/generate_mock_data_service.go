@@ -94,6 +94,18 @@ func (g *generateMockDataService) GenerateMockDataWithOneTable(ctx context.Conte
 	return resp, nil
 }
 
+func (g *generateMockDataService) callLLM(ctx context.Context, prompt string) (completions.CompletionResponse, error) {
+	req := completions.CompletionRequest{
+		Model: g.Config.LMStudio.Model,
+		Messages: []completions.MessageRequest{
+			{Role: ROLE_LM_STUDIO, Content: prompt},
+		},
+		Temperature: g.Config.LMStudio.Temperature,
+		MaxTokens:   g.Config.LMStudio.MaxTokens,
+	}
+	return g.LmStudioClient.GetCompletionsService.GetCompletionsService(ctx, req)
+}
+
 func (g *generateMockDataService) GenerateMockDataWithFkTables(ctx context.Context, in *model.GenerateMockDataWithFkTableRequest) (*model.GenerateMockDataWithFkTableResponse, error) {
 	errValidate := validation.ValidateStruct(in)
 	if errValidate != nil {
@@ -118,19 +130,7 @@ func (g *generateMockDataService) GenerateMockDataWithFkTables(ctx context.Conte
 	}
 
 	extractKeyPrompt := g.Utils.GeneratePromptUtils.GeneratePromptForFKExtraction(tableSchema.TableName, tableSchema.TableScript.String)
-	reqGetCompletionsService := completions.CompletionRequest{
-		Model: g.Config.LMStudio.Model,
-		Messages: []completions.MessageRequest{
-			{
-				Role:    ROLE_LM_STUDIO,
-				Content: extractKeyPrompt,
-			},
-		},
-		Temperature: g.Config.LMStudio.Temperature,
-		MaxTokens:   g.Config.LMStudio.MaxTokens,
-	}
-
-	respKeyExtraction, err := g.LmStudioClient.GetCompletionsService.GetCompletionsService(ctx, reqGetCompletionsService)
+	respKeyExtraction, err := g.callLLM(ctx, extractKeyPrompt)
 	if err != nil {
 		return nil, g.Errors.ErrUnableToProceed.WithDebugMessage(err.Error())
 	}
@@ -140,7 +140,30 @@ func (g *generateMockDataService) GenerateMockDataWithFkTables(ctx context.Conte
 	TotalTokens += respKeyExtraction.Usage.TotalTokens
 
 	_, fk := g.Utils.ExtractStringUtils.ExtractForeignKeyInfo(respKeyExtraction.Choices[0].Message.Content)
+	if len(fk) == 0 {
+		slog.DebugContext(ctx, "No foreign key found", "tableName", tableSchema.TableName)
+		promptForNoFk := g.Utils.GeneratePromptUtils.GeneratePromptWithoutKey(tableSchema.TableName, tableSchema.TableScript.String, in.NumSample)
 
+		respNoFk, err := g.callLLM(ctx, promptForNoFk)
+		if err != nil {
+			return nil, g.Errors.ErrUnableToProceed.WithDebugMessage(err.Error())
+		}
+
+		PromptTokens += respNoFk.Usage.PromptTokens
+		CompletionTokens += respNoFk.Usage.CompletionTokens
+		TotalTokens += respNoFk.Usage.TotalTokens
+
+		return &model.GenerateMockDataWithFkTableResponse{
+			Status: 200,
+			Data: model.GenerateMockDataWithFkTableResponseData{
+				Query:            conv.ReplaceNewlineWithSpace(respNoFk.Choices[0].Message.Content),
+				PromptTokens:     PromptTokens,
+				CompletionTokens: CompletionTokens,
+				TotalTokens:      TotalTokens,
+				TimeTaken:        time.Since(dateTimeNow).Seconds(),
+			},
+		}, nil
+	}
 	insertResponse := []string{}
 	fieldName := []string{}
 	fieldValue := []string{}
@@ -162,19 +185,7 @@ func (g *generateMockDataService) GenerateMockDataWithFkTables(ctx context.Conte
 
 		extractKeyPrompt := g.Utils.GeneratePromptUtils.GeneratePromptWithoutKey(tableSchemaFk.TableName, tableSchemaFk.TableScript.String, 1)
 
-		reqGetCompletionsService := completions.CompletionRequest{
-			Model: g.Config.LMStudio.Model,
-			Messages: []completions.MessageRequest{
-				{
-					Role:    ROLE_LM_STUDIO,
-					Content: extractKeyPrompt,
-				},
-			},
-			Temperature: g.Config.LMStudio.Temperature,
-			MaxTokens:   g.Config.LMStudio.MaxTokens,
-		}
-
-		respFromFkTable, err := g.LmStudioClient.GetCompletionsService.GetCompletionsService(ctx, reqGetCompletionsService)
+		respFromFkTable, err := g.callLLM(ctx, extractKeyPrompt)
 		if err != nil {
 			return nil, g.Errors.ErrUnableToProceed.WithDebugMessage(err.Error())
 		}
@@ -200,19 +211,7 @@ func (g *generateMockDataService) GenerateMockDataWithFkTables(ctx context.Conte
 	}
 
 	prompt := g.Utils.GeneratePromptUtils.GeneratePromptForMockDataWithValues(tableSchema.TableName, tableSchema.TableScript.String, in.NumSample, fieldName, fieldValue)
-	reqGetCompletionsMain := completions.CompletionRequest{
-		Model: g.Config.LMStudio.Model,
-		Messages: []completions.MessageRequest{
-			{
-				Role:    ROLE_LM_STUDIO,
-				Content: prompt,
-			},
-		},
-		Temperature: g.Config.LMStudio.Temperature,
-		MaxTokens:   g.Config.LMStudio.MaxTokens,
-	}
-
-	respMain, err := g.LmStudioClient.GetCompletionsService.GetCompletionsService(ctx, reqGetCompletionsMain)
+	respMain, err := g.callLLM(ctx, prompt)
 	if err != nil {
 		return nil, g.Errors.ErrUnableToProceed.WithDebugMessage(err.Error())
 	}
@@ -235,5 +234,4 @@ func (g *generateMockDataService) GenerateMockDataWithFkTables(ctx context.Conte
 			TimeTaken:        time.Since(dateTimeNow).Seconds(),
 		},
 	}, nil
-
 }
