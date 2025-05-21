@@ -23,6 +23,7 @@ func init() {
 			slog.Error("Error getting profile flag", slog.Any("Error", err))
 		}
 		validatedProfile := runtime.ValidateProfile(profile)
+		setUpLogger(validatedProfile)
 		setUpConfig(validatedProfile)
 		setUpPostgres()
 	}

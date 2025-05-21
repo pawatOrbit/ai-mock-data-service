@@ -13,7 +13,7 @@ type LmStudioServiceClient struct {
 
 func NewLmStudioHttpClient(cfg *core_config.LMStudioConfig, logger slog.Logger) *LmStudioServiceClient {
 	return &LmStudioServiceClient{
-		GetCompletionsService: completions.NewCompletionsServiceClient(cfg),
+		GetCompletionsService: completions.NewCompletionsServiceClient(cfg, logger),
 	}
 }
 

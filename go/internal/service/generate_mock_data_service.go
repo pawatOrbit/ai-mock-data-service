@@ -3,10 +3,10 @@ package service
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/pawatOrbit/ai-mock-data-service/go/config"
 	"github.com/pawatOrbit/ai-mock-data-service/go/core/exception"
 	"github.com/pawatOrbit/ai-mock-data-service/go/core/httpclient"
 	"github.com/pawatOrbit/ai-mock-data-service/go/core/httpclient/completions"
@@ -14,6 +14,10 @@ import (
 	"github.com/pawatOrbit/ai-mock-data-service/go/internal/model"
 	"github.com/pawatOrbit/ai-mock-data-service/go/internal/repository"
 	"github.com/pawatOrbit/ai-mock-data-service/go/utils"
+)
+
+const (
+	ROLE_LM_STUDIO = "user"
 )
 
 type GenerateMockDataService interface {
@@ -24,14 +28,16 @@ type generateMockDataService struct {
 	Repo           *repository.Repository
 	Errors         *exception.MockDataServiceErrors
 	Utils          *utils.Utils
+	Config         *config.Config
 	LmStudioClient *httpclient.LmStudioServiceClient
 }
 
-func NewGenerateMockDataService(repo *repository.Repository, errors *exception.MockDataServiceErrors, utils *utils.Utils, lmStudioClient *httpclient.LmStudioServiceClient) GenerateMockDataService {
+func NewGenerateMockDataService(repo *repository.Repository, errors *exception.MockDataServiceErrors, utils *utils.Utils, config *config.Config, lmStudioClient *httpclient.LmStudioServiceClient) GenerateMockDataService {
 	return &generateMockDataService{
 		Repo:           repo,
 		Errors:         errors,
 		Utils:          utils,
+		Config:         config,
 		LmStudioClient: lmStudioClient,
 	}
 }
@@ -56,21 +62,21 @@ func (g *generateMockDataService) GenerateMockDataWithOneTable(ctx context.Conte
 	prompt := g.Utils.GeneratePromptUtils.GeneratePromptWithoutKey(tableSchema.TableName, tableSchema.TableScript.String, in.NumSample)
 
 	reqGetCompletionsService := completions.CompletionRequest{
-		Model: "codestral-22b-v0.1",
+		Model: g.Config.LMStudio.Model,
 		Messages: []completions.MessageRequest{
 			{
-				Role:    "user",
+				Role:    ROLE_LM_STUDIO,
 				Content: prompt,
 			},
 		},
-		Temperature: 0.7,
-		MaxTokens:   12000,
+		Temperature: g.Config.LMStudio.Temperature,
+		MaxTokens:   g.Config.LMStudio.MaxTokens,
 	}
 	respLmStudio, err := g.LmStudioClient.GetCompletionsService.GetCompletionsService(ctx, reqGetCompletionsService)
 	if err != nil {
 		return nil, g.Errors.ErrUnableToProceed.WithDebugMessage(err.Error())
 	}
-	fmt.Println("HERE")
+
 	resp := &model.GenerateMockDataWithOneTableResponse{
 		Status: 200,
 		Data: model.GenerateMockDataWithOneTableResponseData{

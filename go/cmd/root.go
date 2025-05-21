@@ -12,6 +12,7 @@ import (
 
 	"github.com/pawatOrbit/ai-mock-data-service/go/config"
 	core_config "github.com/pawatOrbit/ai-mock-data-service/go/core/config"
+	"github.com/pawatOrbit/ai-mock-data-service/go/core/logger"
 	"github.com/pawatOrbit/ai-mock-data-service/go/core/pgdb"
 	"github.com/pawatOrbit/ai-mock-data-service/go/internal/build"
 	"github.com/pawatOrbit/ai-mock-data-service/go/utils/runtime"
@@ -60,6 +61,10 @@ func init() {
 // To get config at runtime
 func getConfigFunc() core_config.Config {
 	return config.GetConfig().Config
+}
+
+func setUpLogger(validateProfile runtime.Environment) {
+	logger.InitLogger(validateProfile)
 }
 
 func setUpConfig(profile runtime.Environment) {

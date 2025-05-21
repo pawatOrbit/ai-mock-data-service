@@ -1,15 +1,17 @@
 package httpserver
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
-	"log/slog"
 	"net/http"
 	"reflect"
 	"time"
 
+	"github.com/pawatOrbit/ai-mock-data-service/go/core/logger"
 	"github.com/pawatOrbit/ai-mock-data-service/go/core/transport"
+	middleware "github.com/pawatOrbit/ai-mock-data-service/go/core/transport/httpserver/middlewares"
 )
 
 func NewTransport[T, R any](req T, endpoint func() Endpoint[T, R], middlewares ...transport.EndpointMiddleware[T, R]) func(w http.ResponseWriter, r *http.Request) {
@@ -23,6 +25,8 @@ func NewTransport[T, R any](req T, endpoint func() Endpoint[T, R], middlewares .
 			httpStatusCode = http.StatusOK
 			method         = r.Method
 			path           = r.URL.Path
+			header         = r.Header
+			requestBody    []byte
 			resp           R
 			serviceError   error
 			elapsedTime    time.Duration
@@ -59,14 +63,9 @@ func NewTransport[T, R any](req T, endpoint func() Endpoint[T, R], middlewares .
 			w.WriteHeader(httpStatusCode)
 			json.NewEncoder(w).Encode(resp)
 
-			slog.InfoContext(ctx, "HTTP Request",
-				slog.String("method", method),
-				slog.String("path", path),
-				slog.Duration("elapsed_time", elapsedTime),
-			)
+			logRequestAndResponse(ctx, startTime, elapsedTime, method, path, header, requestBody, []byte(fmt.Sprintf("%v", resp)), serviceError, httpStatusCode)
 			return
 		}
-
 	}
 }
 
@@ -77,4 +76,8 @@ func deepCopy[T any](src T) T {
 func readRequestBody(r *http.Request) ([]byte, error) {
 	defer r.Body.Close()
 	return io.ReadAll(r.Body)
+}
+
+func logRequestAndResponse(ctx context.Context, startTime time.Time, elapsedTime time.Duration, method string, path string, header http.Header, requestBody, responseBody []byte, serviceError error, httpStatusCode int) {
+	middleware.LoggingNetHttp(ctx, *logger.Slog, startTime, elapsedTime, method, path, header, requestBody, responseBody, serviceError, httpStatusCode)
 }
