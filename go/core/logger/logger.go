@@ -156,6 +156,10 @@ func (p Pathfinder) ErrorContext(ctx context.Context, msg string, fields ...any)
 	slog.ErrorContext(ctx, fmt.Sprintf("[service][%s] %s", p.svc, msg), fields...)
 }
 
+func (p Pathfinder) DebugContext(ctx context.Context, msg string, fields ...any) {
+	slog.DebugContext(ctx, fmt.Sprintf("[service][%s] %s", p.svc, msg), fields...)
+}
+
 func (p Pathfinder) NewPathfinder(svc string) Pathfinder {
 	return Pathfinder{svc: p.svc + "." + svc}
 }
