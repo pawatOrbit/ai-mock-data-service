@@ -5,11 +5,10 @@ import (
 	"strings"
 )
 
-type GeneratePromptUtils interface{
+type GeneratePromptUtils interface {
 	GeneratePromptWithoutKey(tableName, tableScript string, numSample int) string
 	GeneratePromptForFKExtraction(tableName, tableScript string) string
 	GeneratePromptForMockDataWithValues(tableName, tableScript string, numSample int, fieldsName, fieldsValue []string) string
-
 }
 
 type GeneratePromptUtilsImpl struct {
@@ -28,6 +27,7 @@ Table Structure:
 %s
 Please generate %d rows of mock data for this table. Ensure that the data is realistic and adheres to the structure defined above.
 Create mock data for all fields in the table without using functions like NOW() or UUID(). Use the following format:
+Please give me only the SQL insert statements in the following format and do not include any other text:
 Please do not think or describe, just provide the SQL insert statements in the following format:
 Example of format to use:
 uuid 'a5f89c0d-e4b2-46ae-8716-11431ddad3af', 'b2e7dcfa-e1ab-460a-8a5a-f9ce555d1234'
